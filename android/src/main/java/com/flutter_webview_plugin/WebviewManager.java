@@ -10,6 +10,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -172,9 +173,15 @@ class WebviewManager {
             }
         });
         // TANG CW - 10012019 - START
-        webView.evaluateJavascript("window.flutter_inappbrowser.callHandler = function(handlerName, ...args) {" +
-            "window.flutter_inappbrowser._callHandler(handlerName, JSON.stringify(args));" +
-        "}", null);
+        String jsScript = "window.flutter_inappbrowser.callHandler = function(handlerName, ...args) {" +
+                "window.flutter_inappbrowser._callHandler(handlerName, JSON.stringify(args));" +
+            "}";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            webView.evaluateJavascript(jsScript , null);
+        }
+        else {
+            webView.loadUrl("javascript:"+jsScript );
+        }
         webView.addJavascriptInterface(this, "flutter_inappbrowser");
         // TANG CW - 10012019 - END
     }
