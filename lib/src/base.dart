@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 const _kChannel = 'flutter_webview_plugin';
+typedef Future<void> JavaScriptHandlerCallback(List<dynamic> arguments);
 
 // TODO: more general state for iOS/android
 enum WebViewState { shouldStart, startLoad, finishLoad }
@@ -54,6 +55,15 @@ class FlutterWebviewPlugin {
       case 'onHttpError':
         _onHttpError.add(WebViewHttpError(call.arguments['code'], call.arguments['url']));
         break;
+      case "onCallJsHandler":
+        String handlerName = call.arguments["handlerName"];
+        List<dynamic> args = jsonDecode(call.arguments["args"]);
+        if (javaScriptHandlersMap.containsKey(handlerName)) {
+          for (var handler in javaScriptHandlersMap[handlerName]) {
+            handler(args);
+          }
+        }
+        break;
     }
   }
 
@@ -75,6 +85,35 @@ class FlutterWebviewPlugin {
   Stream<double> get onScrollXChanged => _onScrollXChanged.stream;
 
   Stream<WebViewHttpError> get onHttpError => _onHttpError.stream;
+  
+  Map<String, List<JavaScriptHandlerCallback>> javaScriptHandlersMap = HashMap<String, List<JavaScriptHandlerCallback>>();
+
+  ///Adds/Appends a JavaScript message handler [callback] ([JavaScriptHandlerCallback]) that listen to post messages sent from JavaScript by the handler with name [handlerName].
+  ///Returns the position `index` of the handler that can be used to remove it with the [removeJavaScriptHandler()] method.
+  ///
+  ///The Android implementation uses [addJavascriptInterface](https://developer.android.com/reference/android/webkit/WebView#addJavascriptInterface(java.lang.Object,%20java.lang.String)).
+  ///The iOS implementation uses [addScriptMessageHandler](https://developer.apple.com/documentation/webkit/wkusercontentcontroller/1537172-addscriptmessagehandler?language=objc)
+  ///
+  ///The JavaScript function that can be used to call the handler is `window.flutter_inappbrowser.callHandler(handlerName <String>, ...args);`, where `args` are [rest parameters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters).
+  ///The `args` will be stringified automatically using `JSON.stringify(args)` method and then they will be decoded on the Dart side.
+  int addJavaScriptHandler(String handlerName, JavaScriptHandlerCallback callback) {
+    this.javaScriptHandlersMap.putIfAbsent(handlerName, () => List<JavaScriptHandlerCallback>());
+    this.javaScriptHandlersMap[handlerName].add(callback);
+    return this.javaScriptHandlersMap[handlerName].indexOf(callback);
+  }
+
+  ///Removes a JavaScript message handler previously added with the [addJavaScriptHandler()] method in the [handlerName] list by its position [index].
+  ///Returns `true` if the callback is removed, otherwise `false`.
+  bool removeJavaScriptHandler(String handlerName, int index) {
+    try {
+      this.javaScriptHandlersMap[handlerName].removeAt(index);
+      return true;
+    }
+    on RangeError catch(e) {
+      print(e);
+    }
+    return false;
+  }
 
   /// Start the Webview with [url]
   /// - [headers] specify additional HTTP headers

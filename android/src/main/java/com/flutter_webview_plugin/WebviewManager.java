@@ -171,7 +171,23 @@ class WebviewManager {
                 return true;
             }
         });
+        // TANG CW - 10012019 - START
+        webView.evaluateJavascript("window.flutter_inappbrowser.callHandler = function(handlerName, ...args) {" +
+            "window.flutter_inappbrowser._callHandler(handlerName, JSON.stringify(args));" +
+        "}", null);
+        webView.addJavascriptInterface(this, "flutter_inappbrowser");
+        // TANG CW - 10012019 - END
     }
+    
+    // TANG CW - 10012019 - START
+    @JavascriptInterface
+    public void _callHandler(String handlerName, String args) {
+        Map<String, Object> obj = new HashMap<>();
+        obj.put("handlerName", handlerName);
+        obj.put("args", args);
+        FlutterWebviewPlugin.channel.invokeMethod("onCallJsHandler", obj);
+    }
+    // TANG CW - 10012019 - END
 
     private void clearCookies() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
