@@ -90,11 +90,12 @@ class WebviewManager {
                 String jsScript = "window.flutter_inappbrowser.callHandler = function(handlerName, ...args) {" +
                         "window.flutter_inappbrowser._callHandler(handlerName, JSON.stringify(args));" +
                         "}";
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    webView.evaluateJavascript(jsScript , null);
-                }
-                else {
-                    webView.loadUrl("javascript:" + jsScript);
+                if (webView != null) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                        webView.evaluateJavascript(jsScript, null);
+                    } else {
+                        webView.loadUrl("javascript:" + jsScript);
+                    }
                 }
             }
             // TANG CW - 10012019 - END
