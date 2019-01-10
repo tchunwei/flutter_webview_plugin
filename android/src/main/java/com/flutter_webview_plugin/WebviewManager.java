@@ -81,7 +81,24 @@ class WebviewManager {
         this.webView = new ObservableWebView(activity);
         this.activity = activity;
         this.resultHandler = new ResultHandler();
-        WebViewClient webViewClient = new BrowserClient();
+        WebViewClient webViewClient = new BrowserClient() {
+            // TANG CW - 10012019 - START
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+
+                String jsScript = "window.flutter_inappbrowser.callHandler = function(handlerName, ...args) {" +
+                        "window.flutter_inappbrowser._callHandler(handlerName, JSON.stringify(args));" +
+                        "}";
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    webView.evaluateJavascript(jsScript , null);
+                }
+                else {
+                    webView.loadUrl("javascript:" + jsScript);
+                }
+            }
+            // TANG CW - 10012019 - END
+        };
         webView.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
@@ -173,15 +190,6 @@ class WebviewManager {
             }
         });
         // TANG CW - 10012019 - START
-        String jsScript = "window.flutter_inappbrowser.callHandler = function(handlerName, ...args) {" +
-                "window.flutter_inappbrowser._callHandler(handlerName, JSON.stringify(args));" +
-            "}";
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            webView.evaluateJavascript(jsScript , null);
-        }
-        else {
-            webView.loadUrl("javascript:"+jsScript );
-        }
         webView.addJavascriptInterface(this, "flutter_inappbrowser");
         // TANG CW - 10012019 - END
     }
