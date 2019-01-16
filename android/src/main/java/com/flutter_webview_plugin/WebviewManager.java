@@ -126,7 +126,6 @@ class WebviewManager {
 
                 String filepath = activity.getApplicationContext().getCacheDir() + request.getUrl().getPath();
                 File file = new File(filepath);
-                Log.d("ABCDEFG", filepath);
                 try {
                     if (file.exists()) {
                         InputStream inputStream = new FileInputStream(filepath);
