@@ -112,98 +112,98 @@ class WebviewManager {
                 }
             }
 
-            @Override
-            public WebResourceResponse shouldInterceptRequest (WebView view, WebResourceRequest request) {
-                if (!request.getMethod().equalsIgnoreCase("get") || request.getUrl().getPath().equals("/")
-                        || !(request.getUrl().getPath().endsWith("css")
-                        || request.getUrl().getPath().endsWith("js")
-                        || request.getUrl().getPath().endsWith("woff")
-                        || request.getUrl().getPath().endsWith("woff2")
-                        || request.getUrl().getPath().endsWith("ttf")
-                        || request.getUrl().getPath().endsWith("eot"))) {
-                    return null;
-                }
-
-                String filepath = activity.getApplicationContext().getCacheDir() + request.getUrl().getPath();
-                File file = new File(filepath);
-                try {
-                    if (file.exists()) {
-                        InputStream inputStream = new FileInputStream(filepath);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            int statusCode = 200;
-                            String reasonPhase = "OK";
-                            Map<String, String> responseHeaders = new HashMap<String, String>();
-                            responseHeaders.put("Access-Control-Allow-Origin", "*");
-
-                            return new WebResourceResponse(getMimeType(filepath), "UTF-8", statusCode, reasonPhase, responseHeaders, inputStream);
-                        }
-                        return new WebResourceResponse(getMimeType(filepath), "UTF-8", inputStream);
-                    }
-                    else {
-                        final String url = request.getUrl().toString();
-                        Request mRequest = new Request.Builder().url(url).build();
-
-                        long startResourceTime = System.currentTimeMillis();
-                        OkHttpClient httpClient = new OkHttpClient();
-                        Response response = httpClient.newCall(mRequest).execute();
-                        long duration = System.currentTimeMillis() - startResourceTime;
-
-                        if (response.cacheResponse() != null) {
-                            duration = 0;
-                        }
-
-                        String reasonPhrase = response.message();
-                        reasonPhrase = (reasonPhrase.equals("") || reasonPhrase == null) ? "OK" : reasonPhrase;
-
-                        Map<String, String> headersResponse = new HashMap<String, String>();
-                        for (Map.Entry<String, List<String>> entry : response.headers().toMultimap().entrySet()) {
-                            StringBuilder value = new StringBuilder();
-                            for (String val : entry.getValue()) {
-                                value.append((value.toString().isEmpty()) ? val : "; " + val);
-                            }
-                            headersResponse.put(entry.getKey().toLowerCase(), value.toString());
-                        }
-
-                        Map<String, String> headersRequest = new HashMap<String, String>();
-                        for (Map.Entry<String, List<String>> entry : mRequest.headers().toMultimap().entrySet()) {
-                            StringBuilder value = new StringBuilder();
-                            for (String val : entry.getValue()) {
-                                value.append((value.toString().isEmpty()) ? val : "; " + val);
-                            }
-                            headersRequest.put(entry.getKey().toLowerCase(), value.toString());
-                        }
-
-                        byte[] dataBytes = response.body().bytes();
-                        InputStream dataStream = new ByteArrayInputStream(dataBytes);
-
-                        if (!file.getParentFile().exists())
-                            file.getParentFile().mkdirs();
-                        FileOutputStream outputStream;
-
-                        try {
-                            outputStream = new FileOutputStream(file, false);
-                            outputStream.write(dataBytes);
-                            outputStream.close();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-
-                        return new WebResourceResponse(
-                                response.header("content-type", "text/plain").split(";")[0].trim(),
-                                response.header("content-encoding"),
-                                response.code(),
-                                reasonPhrase,
-                                headersResponse,
-                                dataStream
-                        );
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
+//            @Override
+//            public WebResourceResponse shouldInterceptRequest (WebView view, WebResourceRequest request) {
+//                if (!request.getMethod().equalsIgnoreCase("get") || request.getUrl().getPath().equals("/")
+//                        || !(request.getUrl().getPath().endsWith("css")
+//                        || request.getUrl().getPath().endsWith("js")
+//                        || request.getUrl().getPath().endsWith("woff")
+//                        || request.getUrl().getPath().endsWith("woff2")
+//                        || request.getUrl().getPath().endsWith("ttf")
+//                        || request.getUrl().getPath().endsWith("eot"))) {
+//                    return null;
+//                }
+//
+//                String filepath = activity.getApplicationContext().getCacheDir() + request.getUrl().getPath();
+//                File file = new File(filepath);
+//                try {
+//                    if (file.exists()) {
+//                        InputStream inputStream = new FileInputStream(filepath);
+//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//                            int statusCode = 200;
+//                            String reasonPhase = "OK";
+//                            Map<String, String> responseHeaders = new HashMap<String, String>();
+//                            responseHeaders.put("Access-Control-Allow-Origin", "*");
+//
+//                            return new WebResourceResponse(getMimeType(filepath), "UTF-8", statusCode, reasonPhase, responseHeaders, inputStream);
+//                        }
+//                        return new WebResourceResponse(getMimeType(filepath), "UTF-8", inputStream);
+//                    }
+//                    else {
+//                        final String url = request.getUrl().toString();
+//                        Request mRequest = new Request.Builder().url(url).build();
+//
+//                        long startResourceTime = System.currentTimeMillis();
+//                        OkHttpClient httpClient = new OkHttpClient();
+//                        Response response = httpClient.newCall(mRequest).execute();
+//                        long duration = System.currentTimeMillis() - startResourceTime;
+//
+//                        if (response.cacheResponse() != null) {
+//                            duration = 0;
+//                        }
+//
+//                        String reasonPhrase = response.message();
+//                        reasonPhrase = (reasonPhrase.equals("") || reasonPhrase == null) ? "OK" : reasonPhrase;
+//
+//                        Map<String, String> headersResponse = new HashMap<String, String>();
+//                        for (Map.Entry<String, List<String>> entry : response.headers().toMultimap().entrySet()) {
+//                            StringBuilder value = new StringBuilder();
+//                            for (String val : entry.getValue()) {
+//                                value.append((value.toString().isEmpty()) ? val : "; " + val);
+//                            }
+//                            headersResponse.put(entry.getKey().toLowerCase(), value.toString());
+//                        }
+//
+//                        Map<String, String> headersRequest = new HashMap<String, String>();
+//                        for (Map.Entry<String, List<String>> entry : mRequest.headers().toMultimap().entrySet()) {
+//                            StringBuilder value = new StringBuilder();
+//                            for (String val : entry.getValue()) {
+//                                value.append((value.toString().isEmpty()) ? val : "; " + val);
+//                            }
+//                            headersRequest.put(entry.getKey().toLowerCase(), value.toString());
+//                        }
+//
+//                        byte[] dataBytes = response.body().bytes();
+//                        InputStream dataStream = new ByteArrayInputStream(dataBytes);
+//
+//                        if (!file.getParentFile().exists())
+//                            file.getParentFile().mkdirs();
+//                        FileOutputStream outputStream;
+//
+//                        try {
+//                            outputStream = new FileOutputStream(file, false);
+//                            outputStream.write(dataBytes);
+//                            outputStream.close();
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                        }
+//
+//                        return new WebResourceResponse(
+//                                response.header("content-type", "text/plain").split(";")[0].trim(),
+//                                response.header("content-encoding"),
+//                                response.code(),
+//                                reasonPhrase,
+//                                headersResponse,
+//                                dataStream
+//                        );
+//                    }
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//                return null;
+//            }
 
             private String getMimeType(String filepath){
                 String fileExtension = filepath.substring(filepath.lastIndexOf(".") + 1, filepath.length());
