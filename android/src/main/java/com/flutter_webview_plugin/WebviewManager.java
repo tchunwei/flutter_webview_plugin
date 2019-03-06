@@ -100,8 +100,8 @@ class WebviewManager {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
 
-                String jsScript = "window.flutter_inappbrowser.callHandler = function(handlerName, ...args) {" +
-                        "window.flutter_inappbrowser._callHandler(handlerName, JSON.stringify(args));" +
+                String jsScript = "window.flutter.callHandler = function(handlerName, ...args) {" +
+                        "window.flutter._callHandler(handlerName, JSON.stringify(args));" +
                         "}";
                 if (webView != null) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -327,7 +327,7 @@ class WebviewManager {
             }
         });
         // TANG CW - 10012019 - START
-        webView.addJavascriptInterface(this, "flutter_inappbrowser");
+        webView.addJavascriptInterface(this, "flutter");
         // TANG CW - 10012019 - END
     }
 
